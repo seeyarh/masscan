@@ -252,7 +252,7 @@ transmit_thread(void *v) /*aka. scanning_thread() */
     throttler_start(throttler, masscan->max_rate/masscan->nic_count);
 
 infinite:
-    
+
     /* Create the shuffler/randomizer. This creates the 'range' variable,
      * which is simply the number of IP addresses times the number of
      * ports.
@@ -305,7 +305,7 @@ infinite:
         /*
          * Transmit a bunch of packets. At any rate slower than 100,000
          * packets/second, the 'batch_size' is likely to be 1. At higher
-         * rates, we can't afford to throttle on a per-packet basis and 
+         * rates, we can't afford to throttle on a per-packet basis and
          * instead throttle on a per-batch basis. In other words, throttle
          * based on 2-at-a-time, 3-at-time, and so on, with the batch
          * size increasing as the packet rate increases. This gives us
@@ -315,7 +315,7 @@ infinite:
         while (batch_size && i < end) {
             uint64_t xXx;
             uint64_t cookie;
-            
+
 
 
             /*
@@ -335,7 +335,7 @@ infinite:
                 while (xXx >= range)
                     xXx -= range;
             xXx = blackrock_shuffle(&blackrock,  xXx);
-            
+
             if (xXx < range_ipv6) {
                 ipv6address ip_them;
                 unsigned port_them;
@@ -347,7 +347,7 @@ infinite:
 
                 ip_me = src_ipv6;
                 port_me = src_port;
-                
+
                 cookie = syn_cookie_ipv6(ip_them, port_them, ip_me, port_me, entropy);
 
                 rawsock_send_probe_ipv6(
@@ -475,7 +475,7 @@ infinite:
         uint64_t batch_size;
 
         for (k=0; k<1000; k++) {
-            
+
             /*
              * Only send a few packets at a time, throttled according to the max
              * --max-rate set by the user
@@ -549,8 +549,8 @@ receive_thread(void *v)
     struct ResetFilter *rf;
     struct stack_t *stack = parms->stack;
 
-    
-    
+
+
     /* For reducing RST responses, see rstfilter_is_filter() below */
     rf = rstfilter_create(entropy, 16384);
 
@@ -564,7 +564,7 @@ receive_thread(void *v)
     parms->total_tcbs = status_tcb_count;
 
     LOG(1, "[+] starting receive thread #%u\n", parms->nic_index);
-    
+
     /* Lock this thread to a CPU. Transmit threads are on even CPUs,
      * receive threads on odd CPUs */
     if (pixie_cpu_get_count() > 1) {
@@ -620,13 +620,13 @@ receive_thread(void *v)
             masscan->tcb.timeout,
             masscan->seed
             );
-        
+
         /*
          * Initialize TCP scripting
          */
         scripting_init_tcp(tcpcon, masscan->scripting.L);
-        
-        
+
+
         /*
          * Set some flags [kludge]
          */
@@ -697,7 +697,7 @@ receive_thread(void *v)
                                  strlen(foo),
                                  foo);
         }
-        
+
         for (i=0; i<masscan->http.headers_count; i++) {
             tcpcon_set_http_header(tcpcon,
                         masscan->http.headers[i].name,
@@ -723,9 +723,9 @@ receive_thread(void *v)
         for (pay = masscan->payloads.tcp; pay; pay = pay->next) {
             char name[64];
             sprintf_s(name, sizeof(name), "hello-string[%u]", pay->port);
-            tcpcon_set_parameter(   tcpcon, 
-                                    name, 
-                                    strlen(pay->payload_base64), 
+            tcpcon_set_parameter(   tcpcon,
+                                    name,
+                                    strlen(pay->payload_base64),
                                     pay->payload_base64);
         }
 
@@ -781,7 +781,7 @@ receive_thread(void *v)
                 tcpcon_timeouts(tcpcon, (unsigned)time(0), 0);
             continue;
         }
-        
+
 
         /*
          * Do any TCP event timeouts based on the current timestamp from
@@ -809,7 +809,7 @@ receive_thread(void *v)
         port_them = parsed.port_src;
         seqno_them = TCP_SEQNO(px, parsed.transport_offset);
         seqno_me = TCP_ACKNO(px, parsed.transport_offset);
-        
+
         assert(ip_me.version != 0);
         assert(ip_them.version != 0);
 
@@ -1024,7 +1024,7 @@ receive_thread(void *v)
                     ; /* ignore if it's own TCP flag is set */
                 else {
                     int is_suppress;
-                    
+
                     is_suppress = rstfilter_is_filter(rf, ip_me, port_me, ip_them, port_them);
                     if (!is_suppress)
                         tcpcon_send_RST(
@@ -1039,7 +1039,7 @@ receive_thread(void *v)
 
         if (Q == 0)
             ; //printf("\nerr\n");
-   
+
         if (TCP_IS_SYNACK(px, parsed.transport_offset)
             || TCP_IS_RST(px, parsed.transport_offset)) {
 
@@ -1081,7 +1081,7 @@ receive_thread(void *v)
                         parsed.ip_ttl,
                         parsed.mac_src
                         );
-            
+
 
             /*
              * Send RST so other side isn't left hanging (only doing this in
@@ -1100,7 +1100,7 @@ receive_thread(void *v)
 
 
     LOG(1, "[+] exiting receive thread #%u                    \n", parms->nic_index);
-    
+
     /*
      * cleanup
      */
@@ -1180,12 +1180,12 @@ main_scan(struct Masscan *masscan)
         unsigned i;
 		unsigned is_error;
         vulncheck = vulncheck_lookup(masscan->vuln_name);
-        
+
         /* If no ports specified on command-line, grab default ports */
         is_error = 0;
         if (rangelist_count(&masscan->targets.ports) == 0)
             rangelist_parse_ports(&masscan->targets.ports, vulncheck->ports, &is_error, 0);
-        
+
         /* Kludge: change normal port range to vulncheck range */
         for (i=0; i<masscan->targets.ports.count; i++) {
             struct Range *r = &masscan->targets.ports.list[i];
@@ -1193,7 +1193,7 @@ main_scan(struct Masscan *masscan)
             r->end = (r->end & 0xFFFF) | Templ_VulnCheck;
         }
     }
-    
+
     /*
      * Initialize the task size
      */
@@ -1363,13 +1363,13 @@ main_scan(struct Masscan *masscan)
                     (unsigned)count_ips, (unsigned)count_ports, (count_ports==1)?"":"s");
             }
     }
-    
+
     /*
      * Start all the threads
      */
     for (index=0; index<masscan->nic_count; index++) {
         struct ThreadPair *parms = &parms_array[index];
-        
+
         /*
          * Start the scanning thread.
          * THIS IS WHERE THE PROGRAM STARTS SPEWING OUT PACKETS AT A HIGH
@@ -1516,7 +1516,7 @@ main_scan(struct Masscan *masscan)
 
         } else {
             /* [AFL-fuzz]
-             * Join the threads, which doesn't allow us to print out 
+             * Join the threads, which doesn't allow us to print out
              * status messages, but allows us to exit cleanly without
              * any waiting */
             for (i=0; i<masscan->nic_count; i++) {
@@ -1545,7 +1545,7 @@ main_scan(struct Masscan *masscan)
 
         printf("%u milliseconds elapsed\n", (unsigned)((usec_now - usec_start)/1000));
     }
-    
+
     LOG(1, "[+] all threads have exited                    \n");
 
     return 0;
@@ -1562,7 +1562,7 @@ int main(int argc, char *argv[])
     unsigned i;
     int has_target_addresses = 0;
     int has_target_ports = 0;
-    
+
     usec_start = pixie_gettime();
 #if defined(WIN32)
     {WSADATA x; WSAStartup(0x101, &x);}
@@ -1580,12 +1580,12 @@ int main(int argc, char *argv[])
         if (is_backtrace)
             pixie_backtrace_init(argv[0]);
     }
-    
+
     /*
      * Initialize those defaults that aren't zero
      */
     memset(masscan, 0, sizeof(*masscan));
-    /* 14 rounds seem to give way better statistical distribution than 4 with a 
+    /* 14 rounds seem to give way better statistical distribution than 4 with a
     very low impact on scan rate */
     masscan->blackrock_rounds = 14;
     masscan->output.is_show_open = 1; /* default: show syn-ack, not rst */
@@ -1676,7 +1676,7 @@ int main(int argc, char *argv[])
      * our --excludefile will chop up our pristine 0.0.0.0/0 range into
      * hundreds of subranges. This allows us to grab addresses faster. */
     massip_optimize(&masscan->targets);
-    
+
     /* FIXME: we only support 63-bit scans at the current time.
      * This is big enough for the IPv4 Internet, where scanning
      * for all TCP ports on all IPv4 addresses results in a 48-bit
@@ -1849,5 +1849,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-

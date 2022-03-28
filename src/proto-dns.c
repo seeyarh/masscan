@@ -352,7 +352,7 @@ dns_set_cookie(unsigned char *px, size_t length, uint64_t cookie)
  ***************************************************************************/
 unsigned
 handle_dns(struct Output *out, time_t timestamp,
-            const unsigned char *px, unsigned length, 
+            const unsigned char *px, unsigned length,
             struct PreprocessedInfo *parsed,
             uint64_t entropy)
 {
@@ -375,12 +375,12 @@ handle_dns(struct Output *out, time_t timestamp,
 
     /*
      * In practice, DNS queries always have the query count set to 1,
-     * though in theory servers could support multiple queries in a 
+     * though in theory servers could support multiple queries in a
      * single request, almost none of them do
      */
     if (dns->qr != 1)
         return 0;
-    
+
     /*
      * If we get back NOERROR, we drop through and extract the strings in
      * the packet. Otherwise, we report the error here.
@@ -407,7 +407,7 @@ handle_dns(struct Output *out, time_t timestamp,
                          (unsigned)strlen(reason));
         return 0;
     }
-    
+
     /*if (dns->qdcount != 1)
         return 0;
     if (dns->ancount < 1)
@@ -432,7 +432,7 @@ handle_dns(struct Output *out, time_t timestamp,
         /* Make sure can't exceed bounds of RR */
         if (txtlen > length - offset)
             txtlen = length - offset;
-        
+
         if (rrlen == 0 || txtlen > rrlen-1)
             return 0;
         if (type != 0x10 || xclass != 3)

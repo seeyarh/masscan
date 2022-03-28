@@ -31,13 +31,13 @@ default_udp_parse(struct Output *out, time_t timestamp,
 {
     ipaddress ip_them = parsed->src_ip;
     unsigned port_them = parsed->port_src;
-    
+
     UNUSEDPARM(entropy);
 
 
-    if (length > 64)
-        length = 64;
-    
+    if (length > 2048)
+        length = 2048;
+
     output_report_banner(
                          out, timestamp,
                          ip_them, 17, port_them,
@@ -50,9 +50,9 @@ default_udp_parse(struct Output *out, time_t timestamp,
 
 /****************************************************************************
  ****************************************************************************/
-void 
+void
 handle_udp(struct Output *out, time_t timestamp,
-        const unsigned char *px, unsigned length, 
+        const unsigned char *px, unsigned length,
         struct PreprocessedInfo *parsed, uint64_t entropy)
 {
     ipaddress ip_them = parsed->src_ip;
@@ -61,32 +61,6 @@ handle_udp(struct Output *out, time_t timestamp,
 
 
     switch (port_them) {
-        case 53: /* DNS - Domain Name System (amplifier) */
-            status = handle_dns(out, timestamp, px, length, parsed, entropy);
-            break;
-        case 123: /* NTP - Network Time Protocol (amplifier) */
-            status = ntp_handle_response(out, timestamp, px, length, parsed, entropy);
-            break;
-        case 137: /* NetBIOS (amplifier) */
-            status = handle_nbtstat(out, timestamp, px, length, parsed, entropy);
-            break;
-        case 161: /* SNMP - Simple Network Managment Protocol (amplifier) */
-            status = handle_snmp(out, timestamp, px, length, parsed, entropy);
-            break;
-        case 5683:
-            status = coap_handle_response(out, timestamp, px + parsed->app_offset, parsed->app_length, parsed, entropy);
-            break;
-        case 11211: /* memcached (amplifier) */
-            px += parsed->app_offset;
-            length = parsed->app_length;
-            status = memcached_udp_parse(out, timestamp, px, length, parsed, entropy);
-            break;
-        case 16464:
-        case 16465:
-        case 16470:
-        case 16471:
-            status = handle_zeroaccess(out, timestamp, px, length, parsed, entropy);
-            break;
         default:
             px += parsed->app_offset;
             length = parsed->app_length;
