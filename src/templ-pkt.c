@@ -425,7 +425,7 @@ tcp_create_packet(
         unsigned char *px, size_t px_length)
 {
     uint64_t xsum;
-  
+
     if (ip_them.version == 4) {
         unsigned ip_id = ip_them.ipv4 ^ port_them ^ seqno;
         unsigned offset_ip = tmpl->ipv4.offset_ip;
@@ -632,10 +632,6 @@ udp_payload_fixup(struct TemplatePacket *tmpl, unsigned port, unsigned seqno)
                     &xsum2,
                     &set_cookie);
 
-    /* Copy over the payloads */
-    memcpy( tmpl->ipv4.packet + tmpl->ipv4.offset_app,
-            px2,
-            length2);
     memcpy( tmpl->ipv6.packet + tmpl->ipv6.offset_app,
             px2,
             length2);
@@ -887,7 +883,7 @@ template_set_target_ipv4(
     struct TemplatePacket *tmpl = NULL;
     unsigned xsum2;
     uint64_t entropy = tmplset->entropy;
-    
+
     *r_length = sizeof_px;
 
     /*
@@ -1145,14 +1141,14 @@ _template_init_ipv6(struct TemplatePacket *tmpl, macaddress_t router_mac_ipv6, u
      * contents = everything after IPv4/IPv6 header */
     offset_tcp6 = offset_ip + 40;
     memmove(buf + offset_tcp6,
-            buf + offset_tcp,       
+            buf + offset_tcp,
             payload_length
             );
 
     /* fill the IPv6 header with zeroes */
     memset(buf + offset_ip, 0, 40);
     tmpl->ipv6.length = offset_ip + 40 + payload_length;
-    
+
     switch (data_link_type) {
         case PCAP_DLT_NULL: /* Null VPN tunnel */
             /* FIXME: insert platform dependent value here */
@@ -1164,16 +1160,16 @@ _template_init_ipv6(struct TemplatePacket *tmpl, macaddress_t router_mac_ipv6, u
             /* Reset the destination MAC address to be the IPv6 router
              * instead of the IPv4 router, which sometimes are different */
             memcpy(buf + 0, router_mac_ipv6.addr, 6);
-            
+
             /* Reset the Ethertype field to 0x86dd (meaning IPv6) */
             buf[12] = 0x86;
             buf[13] = 0xdd;
             break;
     }
-    
+
 
     /* IP.version = 6 */
-    buf[offset_ip + 0] = 0x60; 
+    buf[offset_ip + 0] = 0x60;
 
     /* Set payload length field. In IPv4, this field included the header,
      * but in IPv6, it's everything after the header. In other words,
@@ -1407,7 +1403,7 @@ template_packet_init(
                    data_link);
     templset->pkts[Proto_UDP].payloads = udp_payloads;
     templset->count++;
-    
+
     /* [UDP oproto] */
     _template_init(&templset->pkts[Proto_Oproto],
                    source_mac, router_mac_ipv4, router_mac_ipv6,
@@ -1416,7 +1412,7 @@ template_packet_init(
                    data_link);
     templset->pkts[Proto_Oproto].payloads = oproto_payloads;
     templset->count++;
-    
+
 
     /* [ICMP ping] */
     _template_init(&templset->pkts[Proto_ICMP_ping],
@@ -1480,26 +1476,26 @@ void
 template_set_vlan(struct TemplateSet *tmplset, unsigned vlan)
 {
     unsigned i;
-    
+
     for (i=0; i<tmplset->count; i++) {
         struct TemplatePacket *tmpl = &tmplset->pkts[i];
         unsigned char *px;
 
         if (tmpl->ipv4.length < 14)
             continue;
-        
+
         px = MALLOC(tmpl->ipv4.length + 4);
         memcpy(px, tmpl->ipv4.packet, 12);
         memcpy(px+16, tmpl->ipv4.packet+12, tmpl->ipv4.length - 12);
-        
+
         px[12] = 0x81;
         px[13] = 0x00;
         px[14] = (unsigned char)(vlan>>8);
         px[15] = (unsigned char)(vlan>>0);
-        
+
         tmpl->ipv4.packet = px;
         tmpl->ipv4.length += 4;
-        
+
         tmpl->ipv4.offset_ip += 4;
         tmpl->ipv4.offset_tcp += 4;
         tmpl->ipv4.offset_app += 4;
@@ -1538,4 +1534,3 @@ template_selftest(void)
         fprintf(stderr, "template: failed\n");
     return failures;
 }
-
